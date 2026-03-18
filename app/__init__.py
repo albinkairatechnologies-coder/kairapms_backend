@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
@@ -32,7 +32,9 @@ CORS(app,
      supports_credentials=True,
      allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
      methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-     max_age=600)
+     expose_headers=['Content-Type', 'Authorization'],
+     max_age=600,
+     automatic_options=True)
 
 jwt = JWTManager(app)
 
@@ -61,6 +63,8 @@ limiter = Limiter(
 
 @app.after_request
 def set_security_headers(response):
+    if request.method == 'OPTIONS':
+        return response
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options']        = 'DENY'
     response.headers['X-XSS-Protection']       = '1; mode=block'
