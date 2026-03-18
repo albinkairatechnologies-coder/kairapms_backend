@@ -59,7 +59,6 @@ limiter = Limiter(
     app=app,
     default_limits=['300 per minute'],
     storage_uri='memory://',
-    request_filter=lambda: request.method == 'OPTIONS',
 )
 
 @app.after_request
@@ -139,7 +138,13 @@ app.register_blueprint(feedback_bp,   url_prefix='/api')
 app.register_blueprint(analytics_bp,  url_prefix='/api')
 app.register_blueprint(proposals_bp,  url_prefix='/api')
 
-limiter.limit('10 per minute', exempt_when=lambda: request.method == 'OPTIONS')(auth_bp)
+limiter.limit('10 per minute')(auth_bp)
+
+@auth_bp.before_request
+def skip_limit_on_preflight():
+    if request.method == 'OPTIONS':
+        from flask import make_response
+        return make_response('', 204)
 
 @app.route('/')
 def index():
