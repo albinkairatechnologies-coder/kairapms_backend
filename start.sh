@@ -1,2 +1,2 @@
 #!/bin/bash
-gunicorn server:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
