@@ -55,6 +55,8 @@ def validate_range(value, min_val, max_val, name: str):
 def require_json(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        if request.method == 'OPTIONS':
+            return f(*args, **kwargs)
         if not request.is_json:
             return jsonify({'error': 'Content-Type must be application/json'}), 415
         if request.content_length and request.content_length > 1 * 1024 * 1024:
