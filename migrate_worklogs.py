@@ -6,7 +6,7 @@ import mysql.connector
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv(override=False)
 
 conn = mysql.connector.connect(
     host=os.getenv('DB_HOST', 'localhost'),

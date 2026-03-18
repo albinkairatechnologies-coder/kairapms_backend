@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
 
-load_dotenv()
+load_dotenv(override=False)
 
 conn = mysql.connector.connect(
     host=os.getenv('DB_HOST', 'localhost'),

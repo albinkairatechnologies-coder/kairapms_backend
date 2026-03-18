@@ -5,7 +5,7 @@ Run: python migrate_proposals.py
 import mysql.connector, os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=False)
 
 conn = mysql.connector.connect(
     host=os.getenv('DB_HOST', 'localhost'),
