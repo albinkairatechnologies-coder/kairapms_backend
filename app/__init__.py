@@ -138,13 +138,7 @@ app.register_blueprint(feedback_bp,   url_prefix='/api')
 app.register_blueprint(analytics_bp,  url_prefix='/api')
 app.register_blueprint(proposals_bp,  url_prefix='/api')
 
-limiter.limit('10 per minute')(auth_bp)
-
-@auth_bp.before_request
-def skip_limit_on_preflight():
-    if request.method == 'OPTIONS':
-        from flask import make_response
-        return make_response('', 204)
+limiter.limit('10 per minute', methods=['GET','POST','PUT','PATCH','DELETE'])(auth_bp)
 
 @app.route('/')
 def index():
