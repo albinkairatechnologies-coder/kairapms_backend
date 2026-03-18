@@ -36,6 +36,19 @@ CORS(app,
      max_age=600,
      automatic_options=True)
 
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        origin = request.headers.get('Origin', '')
+        if origin in ALLOWED_ORIGINS:
+            from flask import make_response
+            res = make_response('', 204)
+            res.headers['Access-Control-Allow-Origin']  = origin
+            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+            res.headers['Access-Control-Max-Age']       = '600'
+            return res
+
 jwt = JWTManager(app)
 
 @jwt.expired_token_loader
