@@ -59,6 +59,7 @@ limiter = Limiter(
     app=app,
     default_limits=['300 per minute'],
     storage_uri='memory://',
+    request_filter=lambda: request.method == 'OPTIONS',
 )
 
 @app.after_request
@@ -138,7 +139,7 @@ app.register_blueprint(feedback_bp,   url_prefix='/api')
 app.register_blueprint(analytics_bp,  url_prefix='/api')
 app.register_blueprint(proposals_bp,  url_prefix='/api')
 
-limiter.limit('10 per minute')(auth_bp)
+limiter.limit('10 per minute', exempt_when=lambda: request.method == 'OPTIONS')(auth_bp)
 
 @app.route('/')
 def index():
