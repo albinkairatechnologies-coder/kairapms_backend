@@ -1,5 +1,4 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask import Flask, jsonify, request, make_response
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -27,27 +26,19 @@ ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
     'ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'
 ).split(',') if o.strip()]
 
-CORS(app,
-     origins=ALLOWED_ORIGINS,
-     supports_credentials=True,
-     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
-     methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-     expose_headers=['Content-Type', 'Authorization'],
-     max_age=600,
-     automatic_options=True)
+logger.info('ALLOWED_ORIGINS: %s', ALLOWED_ORIGINS)
 
 @app.before_request
 def handle_preflight():
     if request.method == 'OPTIONS':
+        res = make_response('', 204)
         origin = request.headers.get('Origin', '')
-        if origin in ALLOWED_ORIGINS:
-            from flask import make_response
-            res = make_response('', 204)
-            res.headers['Access-Control-Allow-Origin']  = origin
-            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-            res.headers['Access-Control-Max-Age']       = '600'
-            return res
+        res.headers['Access-Control-Allow-Origin']  = origin if origin in ALLOWED_ORIGINS else ''
+        res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+        res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+        res.headers['Access-Control-Allow-Credentials'] = 'true'
+        res.headers['Access-Control-Max-Age']       = '600'
+        return res
 
 jwt = JWTManager(app)
 
@@ -75,14 +66,19 @@ limiter = Limiter(
 )
 
 @app.after_request
-def set_security_headers(response):
-    if request.method == 'OPTIONS':
-        return response
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options']        = 'DENY'
-    response.headers['X-XSS-Protection']       = '1; mode=block'
-    response.headers['Referrer-Policy']        = 'strict-origin-when-cross-origin'
-    response.headers.pop('Server', None)
+def add_cors_and_security_headers(response):
+    origin = request.headers.get('Origin', '')
+    if origin in ALLOWED_ORIGINS:
+        response.headers['Access-Control-Allow-Origin']      = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Headers']     = 'Content-Type, Authorization, X-Requested-With'
+        response.headers['Access-Control-Allow-Methods']     = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    if request.method != 'OPTIONS':
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options']        = 'DENY'
+        response.headers['X-XSS-Protection']       = '1; mode=block'
+        response.headers['Referrer-Policy']        = 'strict-origin-when-cross-origin'
+        response.headers.pop('Server', None)
     return response
 
 @app.errorhandler(400)
