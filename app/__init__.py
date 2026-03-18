@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -28,17 +29,12 @@ ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
 
 logger.info('ALLOWED_ORIGINS: %s', ALLOWED_ORIGINS)
 
-@app.before_request
-def handle_preflight():
-    if request.method == 'OPTIONS':
-        res = make_response('', 204)
-        origin = request.headers.get('Origin', '')
-        res.headers['Access-Control-Allow-Origin']  = origin if origin in ALLOWED_ORIGINS else ''
-        res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-        res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-        res.headers['Access-Control-Allow-Credentials'] = 'true'
-        res.headers['Access-Control-Max-Age']       = '600'
-        return res
+CORS(app,
+     origins=ALLOWED_ORIGINS,
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+     methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+     max_age=600)
 
 jwt = JWTManager(app)
 
@@ -66,13 +62,7 @@ limiter = Limiter(
 )
 
 @app.after_request
-def add_cors_and_security_headers(response):
-    origin = request.headers.get('Origin', '')
-    if origin in ALLOWED_ORIGINS:
-        response.headers['Access-Control-Allow-Origin']      = origin
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Headers']     = 'Content-Type, Authorization, X-Requested-With'
-        response.headers['Access-Control-Allow-Methods']     = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+def add_security_headers(response):
     if request.method != 'OPTIONS':
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options']        = 'DENY'
