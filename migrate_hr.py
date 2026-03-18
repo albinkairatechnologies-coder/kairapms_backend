@@ -142,6 +142,20 @@ cursor.execute("""
 print("  review_meetings table OK")
 
 # ── 7. Company settings HR columns ───────────────────────────
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS company_settings (
+        id                  INT PRIMARY KEY DEFAULT 1,
+        company_name        VARCHAR(200) DEFAULT 'KairaFlow',
+        company_address     TEXT,
+        company_phone       VARCHAR(50),
+        company_email       VARCHAR(200),
+        company_website     VARCHAR(200),
+        company_logo_path   VARCHAR(500),
+        updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+""")
+print("  company_settings table OK")
+
 hr_columns = [
     ("work_start_time",     "TIME DEFAULT '09:00:00'"),
     ("work_end_time",       "TIME DEFAULT '18:00:00'"),
