@@ -9,6 +9,13 @@ from werkzeug.security import generate_password_hash
 
 load_dotenv(override=False)
 
+# Debug: print DB env vars so we can see what Railway provides
+print("DB_HOST:", os.getenv('DB_HOST'))
+print("DB_USER:", os.getenv('DB_USER'))
+print("DB_NAME:", os.getenv('DB_NAME'))
+print("MYSQLHOST:", os.getenv('MYSQLHOST'))
+print("MYSQL_HOST:", os.getenv('MYSQL_HOST'))
+
 conn = mysql.connector.connect(
     host=os.getenv('DB_HOST', 'localhost'),
     user=os.getenv('DB_USER', 'root'),
