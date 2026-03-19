@@ -231,7 +231,7 @@ class Proposal:
                 msg.attach(MIMEText(html, 'html'))
 
                 if smtp_user and smtp_pass:
-                    with smtplib.SMTP(smtp_host, smtp_port) as server:
+                    with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
                         server.starttls()
                         server.login(smtp_user, smtp_pass)
                         server.sendmail(smtp_user, recipient, msg.as_string())
