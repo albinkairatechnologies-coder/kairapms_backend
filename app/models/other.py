@@ -426,83 +426,104 @@ class Notification:
     @staticmethod
     def create(user_id, title, message, type='info'):
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO notifications (user_id, title, message, type)
-            VALUES (%s, %s, %s, %s)
-        """, (user_id, title, message, type))
-        conn.commit()
-        cursor.close(); conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO notifications (user_id, title, message, type)
+                VALUES (%s, %s, %s, %s)
+            """, (user_id, title, message, type))
+            conn.commit()
+            cursor.close()
+        finally:
+            conn.close()
 
     @staticmethod
     def get_by_user(user_id, unread_only=False):
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM notifications WHERE user_id = %s"
-        if unread_only:
-            query += " AND is_read = FALSE"
-        query += " ORDER BY created_at DESC LIMIT 50"
-        cursor.execute(query, (user_id,))
-        notifications = [_serialize(r) for r in cursor.fetchall()]
-        cursor.close(); conn.close()
-        return notifications
+        try:
+            cursor = conn.cursor(dictionary=True)
+            query = "SELECT * FROM notifications WHERE user_id = %s"
+            if unread_only:
+                query += " AND is_read = FALSE"
+            query += " ORDER BY created_at DESC LIMIT 50"
+            cursor.execute(query, (user_id,))
+            notifications = [_serialize(r) for r in cursor.fetchall()]
+            cursor.close()
+            return notifications
+        finally:
+            conn.close()
 
     @staticmethod
     def mark_read(notification_id):
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE notifications SET is_read = TRUE WHERE id = %s", (notification_id,))
-        conn.commit()
-        cursor.close(); conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE notifications SET is_read = TRUE WHERE id = %s", (notification_id,))
+            conn.commit()
+            cursor.close()
+        finally:
+            conn.close()
 
 
 class Comment:
     @staticmethod
     def create(task_id, user_id, comment):
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO comments (task_id, user_id, comment) VALUES (%s, %s, %s)",
-                       (task_id, user_id, comment))
-        conn.commit()
-        cursor.close(); conn.close()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO comments (task_id, user_id, comment) VALUES (%s, %s, %s)",
+                           (task_id, user_id, comment))
+            conn.commit()
+            cursor.close()
+        finally:
+            conn.close()
 
     @staticmethod
     def get_by_task(task_id):
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT c.*, u.name as user_name
-            FROM comments c JOIN users u ON c.user_id = u.id
-            WHERE c.task_id = %s ORDER BY c.created_at ASC
-        """, (task_id,))
-        comments = [_serialize(r) for r in cursor.fetchall()]
-        cursor.close(); conn.close()
-        return comments
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT c.*, u.name as user_name
+                FROM comments c JOIN users u ON c.user_id = u.id
+                WHERE c.task_id = %s ORDER BY c.created_at ASC
+            """, (task_id,))
+            comments = [_serialize(r) for r in cursor.fetchall()]
+            cursor.close()
+            return comments
+        finally:
+            conn.close()
 
 
 class File:
     @staticmethod
     def create(client_id, file_name, file_path, file_type, uploaded_by, task_id=None):
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO files (client_id, task_id, file_name, file_path, file_type, uploaded_by)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (client_id, task_id, file_name, file_path, file_type, uploaded_by))
-        conn.commit()
-        file_id = cursor.lastrowid
-        cursor.close(); conn.close()
-        return file_id
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO files (client_id, task_id, file_name, file_path, file_type, uploaded_by)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (client_id, task_id, file_name, file_path, file_type, uploaded_by))
+            conn.commit()
+            file_id = cursor.lastrowid
+            cursor.close()
+            return file_id
+        finally:
+            conn.close()
 
     @staticmethod
     def get_by_client(client_id):
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT f.*, u.name as uploaded_by_name
-            FROM files f JOIN users u ON f.uploaded_by = u.id
-            WHERE f.client_id = %s ORDER BY f.created_at DESC
-        """, (client_id,))
-        files = [_serialize(r) for r in cursor.fetchall()]
-        cursor.close(); conn.close()
-        return files
+        try:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT f.*, u.name as uploaded_by_name
+                FROM files f JOIN users u ON f.uploaded_by = u.id
+                WHERE f.client_id = %s ORDER BY f.created_at DESC
+            """, (client_id,))
+            files = [_serialize(r) for r in cursor.fetchall()]
+            cursor.close()
+            return files
+        finally:
+            conn.close()
