@@ -253,7 +253,8 @@ class Proposal:
         cursor.execute("""
             UPDATE proposals SET status='viewed', viewed_at=%s
             WHERE id=%s AND status='sent'
-        """, (now_ist(), proposal_id))        conn.commit()
+        """, (now_ist(), proposal_id))
+        conn.commit()
         cursor.close(); conn.close()
 
 
