@@ -56,6 +56,9 @@ def create_client():
         
         return jsonify({"message": "Client created", "client_id": client_id}), 201
     except Exception as e:
+        import traceback
+        print(f"[CREATE CLIENT ERROR] {str(e)}")
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 400
 
 @client_bp.route('/clients', methods=['GET'])
