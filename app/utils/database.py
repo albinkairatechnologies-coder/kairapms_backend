@@ -16,10 +16,11 @@ def _get_pool() -> pooling.MySQLConnectionPool:
             pool_name='kairaflow_pool',
             pool_size=10,
             pool_reset_session=True,
-            host=os.getenv('DB_HOST', 'localhost'),
-            user=os.getenv('DB_USER', 'root'),
-            password=os.getenv('DB_PASSWORD', ''),
-            database=os.getenv('DB_NAME', 'agencyflow'),
+            host=os.getenv('DB_HOST') or os.getenv('MYSQLHOST', 'localhost'),
+            port=int(os.getenv('DB_PORT') or os.getenv('MYSQLPORT', 3306)),
+            user=os.getenv('DB_USER') or os.getenv('MYSQLUSER', 'root'),
+            password=os.getenv('DB_PASSWORD') or os.getenv('MYSQLPASSWORD', ''),
+            database=os.getenv('DB_NAME') or os.getenv('MYSQLDATABASE', 'agencyflow'),
             charset='utf8mb4',
             collation='utf8mb4_unicode_ci',
             autocommit=False,
@@ -35,10 +36,11 @@ def get_db_connection():
         print(f"[DB] Pool connection error: {e}")
         # Fallback: direct connection
         return mysql.connector.connect(
-            host=os.getenv('DB_HOST', 'localhost'),
-            user=os.getenv('DB_USER', 'root'),
-            password=os.getenv('DB_PASSWORD', ''),
-            database=os.getenv('DB_NAME', 'agencyflow'),
+            host=os.getenv('DB_HOST') or os.getenv('MYSQLHOST', 'localhost'),
+            port=int(os.getenv('DB_PORT') or os.getenv('MYSQLPORT', 3306)),
+            user=os.getenv('DB_USER') or os.getenv('MYSQLUSER', 'root'),
+            password=os.getenv('DB_PASSWORD') or os.getenv('MYSQLPASSWORD', ''),
+            database=os.getenv('DB_NAME') or os.getenv('MYSQLDATABASE', 'agencyflow'),
             charset='utf8mb4',
             collation='utf8mb4_unicode_ci',
         )
