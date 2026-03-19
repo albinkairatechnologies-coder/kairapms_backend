@@ -1,4 +1,5 @@
 from app.utils.database import get_db_connection
+from app.utils.timezone import now_ist, today_ist
 from datetime import datetime, date
 from decimal import Decimal
 import json
@@ -166,7 +167,7 @@ class Proposal:
             cursor.close(); conn.close()
             return None, "Proposal not found"
 
-        now = datetime.now()
+        now = now_ist()
         cursor.execute("""
             UPDATE proposals
             SET status='sent', sent_at=%s, sent_by=%s, note=%s,
@@ -252,8 +253,7 @@ class Proposal:
         cursor.execute("""
             UPDATE proposals SET status='viewed', viewed_at=%s
             WHERE id=%s AND status='sent'
-        """, (datetime.now(), proposal_id))
-        conn.commit()
+        """, (now_ist(), proposal_id))        conn.commit()
         cursor.close(); conn.close()
 
 
@@ -266,7 +266,7 @@ class Invoice:
         cursor.execute("SELECT COUNT(*) FROM invoices")
         count = cursor.fetchone()[0]
         cursor.close(); conn.close()
-        return f"INV-{date.today().year}-{str(count + 1).zfill(4)}"
+        return f"INV-{today_ist().year}-{str(count + 1).zfill(4)}"
 
     @staticmethod
     def create(created_by: int, **kwargs):

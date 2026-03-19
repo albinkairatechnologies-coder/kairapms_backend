@@ -1,4 +1,5 @@
 from app.utils.database import get_db_connection
+from app.utils.timezone import now_ist
 from datetime import datetime
 
 class Task:
@@ -144,7 +145,7 @@ class Task:
             values.append(value)
         if 'status' in kwargs and kwargs['status'] == 'completed':
             fields.append("completed_at = %s")
-            values.append(datetime.now())
+            values.append(now_ist())
         values.append(task_id)
         cursor.execute(f"UPDATE tasks SET {', '.join(fields)} WHERE id = %s", values)
         # Log activity

@@ -167,7 +167,7 @@ class Attendance:
     def get_all_for_date(target_date: str = None):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        d = target_date or date.today().isoformat()
+        d = target_date or _today().isoformat()
         cursor.execute("""
             SELECT a.*, u.name, u.role,
                    t.name  AS team_name,
@@ -271,7 +271,7 @@ class Break:
     def start(user_id: int, break_type: str):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
+        today = _today()
 
         # Get today's attendance id
         cursor.execute(
@@ -320,7 +320,7 @@ class Break:
     def end(user_id: int):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
+        today = _today()
 
         cursor.execute(
             "SELECT id FROM attendance WHERE user_id=%s AND date=%s", (user_id, _today())
@@ -379,7 +379,7 @@ class Break:
     def get_all_for_date(target_date: str = None):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        d = target_date or date.today().isoformat()
+        d = target_date or _today().isoformat()
         cursor.execute("""
             SELECT b.*, u.name AS user_name
             FROM breaks b

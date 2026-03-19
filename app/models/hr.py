@@ -1,4 +1,5 @@
 from app.utils.database import get_db_connection
+from app.utils.timezone import now_ist, today_ist
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
@@ -150,7 +151,7 @@ class Leave:
             UPDATE leave_requests
             SET status='approved', approved_by=%s, approved_at=%s
             WHERE id=%s
-        """, (approver_id, datetime.now(), leave_id))
+        """, (approver_id, now_ist(), leave_id))
 
         # Auto-mark attendance as on_leave for each day
         from datetime import date as dt_date
@@ -191,7 +192,7 @@ class Leave:
             UPDATE leave_requests
             SET status='rejected', approved_by=%s, approved_at=%s, rejection_note=%s
             WHERE id=%s
-        """, (approver_id, datetime.now(), note, leave_id))
+        """, (approver_id, now_ist(), note, leave_id))
         conn.commit()
         cursor.execute("SELECT * FROM leave_requests WHERE id=%s", (leave_id,))
         row = _s(cursor.fetchone())
@@ -249,8 +250,8 @@ class Permission:
             ft = dt2.strptime(from_time[:5], '%H:%M').time()
             tt = dt2.strptime(to_time[:5],   '%H:%M').time()
             duration = int(
-                (dt2.combine(date.today(), tt) -
-                 dt2.combine(date.today(), ft)).total_seconds() / 60
+                (dt2.combine(today_ist(), tt) -
+                 dt2.combine(today_ist(), ft)).total_seconds() / 60
             )
             if duration <= 0:
                 return None, "to_time must be after from_time"
@@ -357,7 +358,7 @@ class Permission:
             UPDATE permission_requests
             SET status='approved', approved_by=%s, approved_at=%s
             WHERE id=%s
-        """, (approver_id, datetime.now(), perm_id))
+        """, (approver_id, now_ist(), perm_id))
         conn.commit()
         cursor.execute("SELECT * FROM permission_requests WHERE id=%s", (perm_id,))
         row = _s(cursor.fetchone())
@@ -382,7 +383,7 @@ class Permission:
             UPDATE permission_requests
             SET status='rejected', approved_by=%s, approved_at=%s
             WHERE id=%s
-        """, (approver_id, datetime.now(), perm_id))
+        """, (approver_id, now_ist(), perm_id))
         conn.commit()
         cursor.execute("SELECT * FROM permission_requests WHERE id=%s", (perm_id,))
         row = _s(cursor.fetchone())

@@ -1,4 +1,5 @@
 from app.utils.database import get_db_connection
+from app.utils.timezone import now_ist, today_ist
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
@@ -27,7 +28,7 @@ class ActivityLog:
     def heartbeat(user_id: int, status: str, idle_seconds: int, events: list):
         conn   = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        now    = datetime.now()
+        now    = now_ist()
 
         # How many active/idle seconds since last heartbeat (~30s)
         INTERVAL = 30
@@ -45,7 +46,7 @@ class ActivityLog:
             last = row['last_heartbeat']
             if isinstance(last, str):
                 last = datetime.fromisoformat(last)
-            if last.date() < now.date():
+            if last.date() < today_ist():
                 active_delta = 0
                 idle_delta   = 0
 
@@ -138,7 +139,7 @@ class ActivityLog:
         conn.close()
 
         # Auto-mark as offline if no heartbeat in last 2 minutes
-        cutoff = datetime.now() - timedelta(minutes=2)
+        cutoff = now_ist() - timedelta(minutes=2)
         for r in rows:
             if r['last_heartbeat']:
                 lh = datetime.fromisoformat(r['last_heartbeat']) if isinstance(r['last_heartbeat'], str) else r['last_heartbeat']
@@ -151,7 +152,7 @@ class ActivityLog:
     def get_summary(user_id: int, target_date: str = None):
         conn   = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        d = target_date or date.today().isoformat()
+        d = target_date or today_ist().isoformat()
 
         cursor.execute("""
             SELECT
