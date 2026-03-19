@@ -1,6 +1,15 @@
 from app.utils.database import get_db_connection
 from datetime import datetime, date, timedelta, time
 from decimal import Decimal
+from zoneinfo import ZoneInfo
+
+IST = ZoneInfo('Asia/Kolkata')
+
+def _now():
+    return datetime.now(IST).replace(tzinfo=None)
+
+def _today():
+    return datetime.now(IST).date()
 
 
 def _s(row):
@@ -28,8 +37,8 @@ class Attendance:
     def check_in(user_id: int, notes: str = None):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
-        now = datetime.now()
+        today = _today()
+        now = _now()
 
         # Fetch company work_start_time and late threshold
         cursor.execute(
@@ -76,8 +85,8 @@ class Attendance:
     def check_out(user_id: int):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
-        now   = datetime.now()
+        today = _today()
+        now   = _now()
 
         cursor.execute(
             "SELECT * FROM attendance WHERE user_id=%s AND date=%s", (user_id, today)
@@ -131,7 +140,7 @@ class Attendance:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             "SELECT * FROM attendance WHERE user_id=%s AND date=%s",
-            (user_id, date.today())
+            (user_id, _today())
         )
         row = _s(cursor.fetchone())
         cursor.close(); conn.close()
@@ -179,7 +188,7 @@ class Attendance:
     def get_absent_today():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
+        today = _today()
         cursor.execute("""
             SELECT u.id, u.name, u.role,
                    t.name  AS team_name,
@@ -228,7 +237,7 @@ class Attendance:
     def get_today_stats():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
+        today = _today()
 
         cursor.execute("""
             SELECT
@@ -266,7 +275,7 @@ class Break:
 
         # Get today's attendance id
         cursor.execute(
-            "SELECT id FROM attendance WHERE user_id=%s AND date=%s", (user_id, today)
+            "SELECT id FROM attendance WHERE user_id=%s AND date=%s", (user_id, _today())
         )
         att = cursor.fetchone()
         if not att:
@@ -297,7 +306,7 @@ class Break:
         cursor.execute("""
             INSERT INTO breaks (user_id, attendance_id, break_type, break_start)
             VALUES (%s, %s, %s, %s)
-        """, (user_id, att_id, break_type, datetime.now()))
+        """, (user_id, att_id, break_type, _now()))
         conn.commit()
         break_id = cursor.lastrowid
 
@@ -314,7 +323,7 @@ class Break:
         today = date.today()
 
         cursor.execute(
-            "SELECT id FROM attendance WHERE user_id=%s AND date=%s", (user_id, today)
+            "SELECT id FROM attendance WHERE user_id=%s AND date=%s", (user_id, _today())
         )
         att = cursor.fetchone()
         if not att:
@@ -331,7 +340,7 @@ class Break:
             cursor.close(); conn.close()
             return None, "No active break"
 
-        now      = datetime.now()
+        now      = _now()
         start_dt = brk['break_start']
         if isinstance(start_dt, str):
             start_dt = datetime.fromisoformat(start_dt)
@@ -354,14 +363,13 @@ class Break:
     def get_today(user_id: int):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        today = date.today()
         cursor.execute("""
             SELECT b.*
             FROM breaks b
             JOIN attendance a ON b.attendance_id = a.id
             WHERE b.user_id=%s AND a.date=%s
             ORDER BY b.break_start
-        """, (user_id, today))
+        """, (user_id, _today()))
         rows = [_s(r) for r in cursor.fetchall()]
         cursor.close(); conn.close()
         return rows
